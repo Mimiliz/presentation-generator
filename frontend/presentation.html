@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apresentação - Gerador Inteligente</title>
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/white.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        .reveal .slides section {
+            text-align: left;
+        }
+        
+        .reveal h1, .reveal h2, .reveal h3 {
+            color: #3B82F6;
+            text-align: center;
+            margin-bottom: 1em;
+        }
+        
+        .reveal .slide-content {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+        
+        .reveal .slide-content ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .reveal .slide-content li {
+            margin: 0.8em 0;
+            padding-left: 1.5em;
+            position: relative;
+        }
+        
+        .reveal .slide-content li:before {
+            content: "▶";
+            color: #3B82F6;
+            position: absolute;
+            left: 0;
+        }
+        
+        .reveal .title-slide {
+            text-align: center;
+            background: linear-gradient(135deg, #3B82F6, #1E40AF);
+            color: white;
+            padding: 2em;
+            border-radius: 10px;
+        }
+        
+        .reveal .title-slide h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+        }
+        
+        .reveal .conclusion-slide {
+            text-align: center;
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            padding: 2em;
+            border-radius: 10px;
+        }
+        
+        .reveal .conclusion-slide h2 {
+            color: white;
+        }
+        
+        .reveal .controls {
+            color: #3B82F6;
+        }
+        
+        .reveal .progress {
+            color: #3B82F6;
+        }
+        
+        .slide-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #3B82F6;
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: #3B82F6;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .back-button:hover {
+            background: #1E40AF;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Voltar</a>
+    
+    <div class="reveal">
+        <div class="slides" id="slides-container">
+            <!-- Slides will be inserted here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Reveal.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/plugin/notes/notes.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/plugin/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/plugin/highlight/highlight.min.js"></script>
+
+    <script>
+        // Get presentation data from URL parameters or localStorage
+        function getPresentationData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const presentationData = urlParams.get('data');
+            
+            if (presentationData) {
+                try {
+                    return JSON.parse(decodeURIComponent(presentationData));
+                } catch (error) {
+                    console.error('Erro ao decodificar dados da apresentação:', error);
+                }
+            }
+            
+            // Fallback to localStorage
+            const storedData = localStorage.getItem('currentPresentation');
+            if (storedData) {
+                try {
+                    return JSON.parse(storedData);
+                } catch (error) {
+                    console.error('Erro ao carregar dados do localStorage:', error);
+                }
+            }
+            
+            return null;
+        }
+
+        // Generate slides HTML
+        function generateSlidesHTML(presentation) {
+            if (!presentation || !presentation.slides) {
+                return '<section><h1>Erro</h1><p>Nenhuma apresentação encontrada.</p></section>';
+            }
+
+            let slidesHTML = '';
+            
+            presentation.slides.forEach((slide, index) => {
+                const isFirstSlide = index === 0;
+                const isLastSlide = index === presentation.slides.length - 1;
+                
+                let slideClass = '';
+                if (isFirstSlide) {
+                    slideClass = 'title-slide';
+                } else if (isLastSlide) {
+                    slideClass = 'conclusion-slide';
+                }
+                
+                let contentHTML = '';
+                if (Array.isArray(slide.content)) {
+                    contentHTML = `
+                        <div class="slide-content">
+                            <ul>
+                                ${slide.content.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    contentHTML = `<div class="slide-content"><p>${slide.content}</p></div>`;
+                }
+                
+                slidesHTML += `
+                    <section class="${slideClass}">
+                        <div class="slide-number">${index + 1} / ${presentation.slides.length}</div>
+                        ${isFirstSlide ? `<h1>${slide.title}</h1>` : `<h2>${slide.title}</h2>`}
+                        ${contentHTML}
+                    </section>
+                `;
+            });
+            
+            return slidesHTML;
+        }
+
+        // Initialize presentation
+        function initializePresentation() {
+            const presentation = getPresentationData();
+            
+            if (!presentation) {
+                document.getElementById('slides-container').innerHTML = `
+                    <section>
+                        <h1>Erro</h1>
+                        <p>Nenhuma apresentação encontrada.</p>
+                        <p><a href="index.html">Voltar para o gerador</a></p>
+                    </section>
+                `;
+                return;
+            }
+            
+            // Update page title
+            document.title = `${presentation.title} - Apresentação`;
+            
+            // Generate and insert slides
+            const slidesHTML = generateSlidesHTML(presentation);
+            document.getElementById('slides-container').innerHTML = slidesHTML;
+            
+            // Initialize Reveal.js
+            Reveal.initialize({
+                hash: true,
+                controls: true,
+                progress: true,
+                center: true,
+                transition: 'slide',
+                transitionSpeed: 'default',
+                backgroundTransition: 'fade',
+                
+                // Plugins
+                plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+                
+                // Keyboard shortcuts
+                keyboard: {
+                    27: function() { // ESC key
+                        window.location.href = 'index.html';
+                    }
+                }
+            });
+        }
+
+        // Export functions
+        function exportToPDF() {
+            window.print();
+        }
+        
+        function exportToPPTX() {
+            // This would integrate with the backend export functionality
+            const presentation = getPresentationData();
+            if (presentation) {
+                // Send to backend for PPTX generation
+                fetch('http://localhost:3000/api/presentation/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        presentation: presentation,
+                        format: 'pptx'
+                    })
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${presentation.title}.pptx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('Erro ao exportar PPTX:', error);
+                    alert('Erro ao exportar para PPTX');
+                });
+            }
+        }
+
+        // Add keyboard shortcuts for export
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch(event.key) {
+                    case 'p':
+                        event.preventDefault();
+                        exportToPDF();
+                        break;
+                    case 'e':
+                        event.preventDefault();
+                        exportToPPTX();
+                        break;
+                }
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializePresentation);
+    </script>
+</body>
+</html>
+
