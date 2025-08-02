@@ -1,24 +1,31 @@
+const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
-const express = require("express");
-const cors = require("cors");
-const app = express();
-const port = process.env.PORT || 3000;
-const presentationRoutes = require("./routes/presentation");
 
-// Middleware
-app.use(cors());
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Configuração de CORS para permitir requisições do frontend
+app.use(cors({
+    origin: [
+        'https://presentation-generator-bwyf.vercel.app',
+        'http://localhost:8080',
+        'http://localhost:3000'
+    ],
+    credentials: true
+} ));
+
 app.use(express.json());
 app.use(express.static('public'));
 
 // Routes
-app.use("/api/presentation", presentationRoutes);
+app.use('/api/presentation', require('./routes/presentation'));
 
-app.get("/", (req, res) => {
-  res.send("Gerador Inteligente de Apresentações - Backend");
+// Root route
+app.get('/', (req, res) => {
+    res.send('Gerador Inteligente de Apresentações - Backend');
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Backend listening at http://0.0.0.0:${port}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Backend listening at http://0.0.0.0:${PORT}` );
 });
-
-
