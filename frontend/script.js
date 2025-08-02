@@ -1,8 +1,10 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api' 
+    : 'https://presentation-generator-backend.onrender.com/api';
 
 // DOM Elements
-const presentationForm = document.getElementById('presentationForm');
+const presentationForm = document.getElementById('presentationForm' );
 const loadingSection = document.getElementById('loadingSection');
 const resultsSection = document.getElementById('resultsSection');
 const slidesPreview = document.getElementById('slidesPreview');
@@ -289,4 +291,3 @@ function showNotification(message, type = 'info') {
         notification.remove();
     }, 3000);
 }
-
